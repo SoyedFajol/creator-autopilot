@@ -1,0 +1,75 @@
+name: Daily Production Pipeline
+
+on:
+  schedule:
+    # 02:00 UTC = 08:00 AM Asia/Dhaka (Morning brief time)
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      forced_topic:
+        description: 'Optional forced topic override'
+        required: false
+        type: string
+      brand_slug:
+        description: 'Specific brand slug to run (default: both active)'
+        required: false
+        default: 'all'
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: production-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  production-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # One matrix job per active brand
+        brand: ['stack-simple', 'worth-the-upgrade']
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'pnpm'
+
+      - name: Cache Video Renders & Kokoro Models
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.kokoro
+            node_modules/.cache
+          key: ${{ runner.os }}-production-cache-${{ matrix.brand }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-production-cache-${{ matrix.brand }}-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Core & Video Packages
+        run: pnpm --filter @creator-autopilot/core --filter @creator-autopilot/video --filter @creator-autopilot/workers run build
+
+      - name: Execute Daily Production Worker
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          WORKFLOW_API_SECRET: ${{ secrets.WORKFLOW_API_SECRET }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          DASHBOARD_API_URL: ${{ secrets.DASHBOARD_API_URL }}
+        run: |
+          pnpm --filter @creator-autopilot/workers run run:production ${{ matrix.brand }}

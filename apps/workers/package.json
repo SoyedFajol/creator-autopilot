@@ -1,0 +1,24 @@
+{
+  "name": "@creator-autopilot/workers",
+  "version": "1.0.0",
+  "description": "Background workers, CLI runners, and GitHub Actions orchestration",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/**/*.test.js",
+    "run:production": "node dist/daily-production.js",
+    "run:publish": "node dist/publish-dispatcher.js",
+    "run:analytics": "node dist/analytics-collector.js",
+    "run:backup": "node dist/backup-runner.js"
+  },
+  "dependencies": {
+    "@creator-autopilot/core": "workspace:*",
+    "@creator-autopilot/video": "workspace:*",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7",
+    "typescript": "^5.7.3"
+  }
+}

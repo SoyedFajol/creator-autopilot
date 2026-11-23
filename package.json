@@ -1,0 +1,14 @@
+{
+  "name": "creator-autopilot",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "pnpm --filter @creator-autopilot/* run build",
+    "dev": "pnpm --filter @creator-autopilot/web run dev",
+    "test": "pnpm --filter @creator-autopilot/* run test",
+    "lint": "pnpm --filter @creator-autopilot/* run lint"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

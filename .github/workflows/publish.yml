@@ -1,0 +1,56 @@
+name: Content Publishing Pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      post_id:
+        description: 'Post ID approved for publishing'
+        required: true
+        type: string
+      brand_slug:
+        description: 'Brand slug'
+        required: true
+        type: string
+  repository_dispatch:
+    types: [publish_content]
+
+permissions:
+  contents: read
+
+# Protected deployment environment
+environment: production-publishing
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Packages
+        run: pnpm --filter @creator-autopilot/core --filter @creator-autopilot/workers run build
+
+      - name: Verify Dashboard Signature & Execute Publishing
+        env:
+          WORKFLOW_API_SECRET: ${{ secrets.WORKFLOW_API_SECRET }}
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          POST_ID: ${{ github.event.inputs.post_id || github.event.client_payload.post_id }}
+          BRAND_SLUG: ${{ github.event.inputs.brand_slug || github.event.client_payload.brand_slug }}
+        run: |
+          pnpm --filter @creator-autopilot/workers run run:publish

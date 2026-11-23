@@ -1,0 +1,54 @@
+name: Continuous Integration & Verification
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test Core Package
+        run: |
+          pnpm --filter @creator-autopilot/core run build
+          pnpm --filter @creator-autopilot/core run test
+
+      - name: Test Video Package
+        run: |
+          pnpm --filter @creator-autopilot/video run build
+          pnpm --filter @creator-autopilot/video run test
+
+      - name: Test Workers Package
+        run: |
+          pnpm --filter @creator-autopilot/workers run build
+          pnpm --filter @creator-autopilot/workers run test
+
+      - name: Build Web Application
+        env:
+          BUILD_STANDALONE: 'true'
+        run: |
+          pnpm --filter @creator-autopilot/web run build

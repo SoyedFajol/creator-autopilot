@@ -1,0 +1,43 @@
+name: Nightly Analytics & Metrics Collector
+
+on:
+  schedule:
+    # 20:00 UTC = 02:00 AM Asia/Dhaka
+    - cron: '0 20 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  collect-metrics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js & pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 12
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Packages
+        run: pnpm --filter @creator-autopilot/core --filter @creator-autopilot/workers run build
+
+      - name: Run Analytics Collection
+        env:
+          WORKFLOW_API_SECRET: ${{ secrets.WORKFLOW_API_SECRET }}
+          DASHBOARD_API_URL: ${{ secrets.DASHBOARD_API_URL }}
+        run: |
+          pnpm --filter @creator-autopilot/workers run run:analytics
