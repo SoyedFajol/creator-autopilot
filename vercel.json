@@ -1,0 +1,6 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "pnpm --filter @creator-autopilot/core run build && pnpm --filter @creator-autopilot/video run build && pnpm --filter @creator-autopilot/web run build",
+  "outputDirectory": "apps/web/.next",
+  "installCommand": "pnpm install"
+}
