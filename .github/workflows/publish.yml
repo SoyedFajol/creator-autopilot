@@ -17,12 +17,11 @@ on:
 permissions:
   contents: read
 
-# Protected deployment environment
-environment: production-publishing
-
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # Protected deployment environment
+    environment: production-publishing
     timeout-minutes: 15
 
     steps:
@@ -31,8 +30,6 @@ jobs:
 
       - name: Setup Node.js & pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 12
 
       - name: Setup Node.js 22.x
         uses: actions/setup-node@v4

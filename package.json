@@ -2,13 +2,17 @@
   "name": "creator-autopilot",
   "private": true,
   "version": "1.0.0",
+  "packageManager": "pnpm@10.5.2",
   "scripts": {
-    "build": "pnpm --filter @creator-autopilot/* run build",
+    "build": "pnpm --filter @creator-autopilot/core run build && pnpm --filter @creator-autopilot/video run build && pnpm --filter @creator-autopilot/web run build",
     "dev": "pnpm --filter @creator-autopilot/web run dev",
     "test": "pnpm --filter @creator-autopilot/* run test",
     "lint": "pnpm --filter @creator-autopilot/* run lint"
   },
   "devDependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "typescript": "^5.7.3"
   }
 }
