@@ -1,7 +1,14 @@
 import React from 'react';
 import { INITIAL_BRANDS } from '@creator-autopilot/core';
+import { YouTubeChannelConnect } from '../../components/YouTubeChannelConnect';
 
-export default function BrandsManagementPage() {
+export default async function BrandsManagementPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ yt_connected?: string; channel?: string; yt_error?: string }>;
+}) {
+  const params = await searchParams;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       <div>
@@ -9,9 +16,51 @@ export default function BrandsManagementPage() {
           🏷️ Brands & Niche Registry
         </h1>
         <p style={{ color: '#94A3B8', margin: 0, fontSize: '14px' }}>
-          Manage your brand profiles, content pillars, pauses, and activation toggles.
+          Manage your brand profiles, YouTube channel OAuth connections, content pillars, and activation toggles.
         </p>
       </div>
+
+      {params.yt_connected && (
+        <div
+          style={{
+            backgroundColor: '#064E3B',
+            border: '1px solid #10B981',
+            color: '#ECFDF5',
+            padding: '14px 18px',
+            borderRadius: '10px',
+            fontSize: '13px',
+            fontWeight: 700,
+          }}
+        >
+          ✅ Successfully connected YouTube channel <strong>{params.channel || 'YouTube Channel'}</strong> to{' '}
+          <code>{params.yt_connected}</code>!
+        </div>
+      )}
+
+      {params.yt_error && (
+        <div
+          style={{
+            backgroundColor: '#450A0A',
+            border: '1px solid #EF4444',
+            color: '#FECACA',
+            padding: '14px 18px',
+            borderRadius: '10px',
+            fontSize: '13px',
+          }}
+        >
+          {params.yt_error === 'missing_google_oauth_env' ? (
+            <>
+              <strong>⚠️ Google OAuth not configured yet:</strong> Add <code>GOOGLE_CLIENT_ID</code> and{' '}
+              <code>GOOGLE_CLIENT_SECRET</code> to your Vercel Environment Variables (and set the Authorized Redirect
+              URI in Google Cloud Console to <code>https://&lt;your-domain&gt;/api/auth/youtube/callback</code>).
+            </>
+          ) : (
+            <>
+              <strong>⚠️ YouTube connection error:</strong> {params.yt_error}
+            </>
+          )}
+        </div>
+      )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '20px' }}>
         {INITIAL_BRANDS.map((brand) => (
@@ -62,6 +111,8 @@ export default function BrandsManagementPage() {
                 ))}
               </ul>
             </div>
+
+            <YouTubeChannelConnect brandId={brand.id} />
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid #334155' }}>
               <div style={{ fontSize: '12px', color: '#94A3B8' }}>
